@@ -24,7 +24,8 @@
 - Add a review (saved to the database)
 - Row Level Security enabled
 
+
 ## My Personalisation
-- New movies added:  Bethleham Kudumba Unit
-- New column: Director
-- Extra feature: Language
+- New movies added:  Kumbalangi Nights, Bheeshma Parvam, Bramayugam, Ennu Ninte Moideen, Vinnaithaandi Varuvaayaa
+- New column: director (shown in the movie popup as "Directed by")
+- Extra feature: Language filter dropdown

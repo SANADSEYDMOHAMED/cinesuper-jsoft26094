@@ -6,6 +6,7 @@ const grid        = document.getElementById("movieGrid");
 const statusEl    = document.getElementById("status");
 const searchInput = document.getElementById("search");
 const genreFilter = document.getElementById("genreFilter");
+const languageFilter = document.getElementById("languageFilter");
 const modal       = document.getElementById("modal");
 const movieDetail = document.getElementById("movieDetail");
 const reviewList  = document.getElementById("reviewList");
@@ -43,6 +44,16 @@ async function loadGenres() {
 }
 
 // 4. SELECT * FROM movie_ratings (the view)
+async function loadLanguages() {
+  const { data, error } = await db.from("movies").select("language");
+  if (error) return showError(error);
+  [...new Set(data.map((m) => m.language))].sort().forEach((lang) => {
+    const opt = document.createElement("option");
+    opt.value = lang;
+    opt.textContent = lang;
+    languageFilter.appendChild(opt);
+  });
+}
 async function loadRatings() {
   const { data, error } = await db.from("movie_ratings").select("id, avg_rating, review_count");
   if (error) return console.error(error);
@@ -56,13 +67,14 @@ async function loadMovies() {
 
   let query = db
     .from("movies")
-    .select("id, title, release_year, language, duration_min, description, poster_url, genres(name)")
+    .select("id, title, release_year, language, duration_min, description, poster_url, director, genres(name)")
     .order("release_year", { ascending: false });
 
   const search = searchInput.value.trim();
   const genreId = genreFilter.value;
   if (search)  query = query.ilike("title", `%${search}%`);
   if (genreId) query = query.eq("genre_id", genreId);
+  if (languageFilter.value) query = query.eq("language", languageFilter.value);
 
   const { data, error } = await query;
   if (error) return showError(error);
@@ -97,6 +109,7 @@ async function openMovie(id) {
   movieDetail.innerHTML = `
     <h2>${escapeHtml(m.title)}</h2>
     <p class="meta">${m.release_year} · ${escapeHtml(m.language)} · ${escapeHtml(m.genres?.name)} · ${m.duration_min} min</p>
+    <p class="meta">🎬 Directed by ${escapeHtml(m.director)}</p>
     <p>${escapeHtml(m.description)}</p>`;
   modal.classList.remove("hidden");
   await loadReviews(id);
@@ -157,10 +170,12 @@ searchInput.addEventListener("input", () => {
   typingTimer = setTimeout(loadMovies, 300);
 });
 genreFilter.addEventListener("change", loadMovies);
+languageFilter.addEventListener("change", loadMovies);
 
 // 11. Start
 async function init() {
   await loadGenres();
+  await loadLanguages();
   await loadRatings();
   await loadMovies();
 }
